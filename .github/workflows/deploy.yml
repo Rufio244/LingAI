@@ -1,0 +1,42 @@
+name: LingAI CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run Syntax & Health Check
+      run: |
+        # ทดสอบรันโค้ดเบื้องต้นเพื่อเช็คว่าไม่มี Syntax Error
+        python -c "import main; print('Vider Core Syntax Check Passed Successfully!')"
+
+  deploy-to-cloud:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+
+    steps:
+    - name: Trigger Render Deploy Webhook
+      run: |
+        # ส่วนนี้สามารถใส่ Render Deploy Hook URL ของคุณธันวาได้ เพื่อสั่ง Deploy อัตโนมัติทันที
+        # curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+        echo "Vider System Ready: Code validated and ready for external integration!"
